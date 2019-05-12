@@ -15,21 +15,57 @@ Tutorials.prototype = {
     },
 
     create: function () {
-        game.add.image(0, 0, 'bg');
+        let bg = game.add.image(0, 0, 'bg');
+        bg.scale.setTo(game.scaleValue);
 
-        let sfx = game.add.image(100, game.height - 100, 'sfx');
+        let sfx = game.add.image(
+            100 * game.scaleValue,
+            game.height - 100 * game.scaleValue,
+            'sfx'
+        );
         sfx.inputEnabled = true;
         sfx.anchor.setTo(0.5, 0.5);
+        sfx.scale.setTo(game.scaleValue);
 
-        let menu = game.add.image(game.width - 100, game.height - 100, 'menu');
+        let menu = game.add.image(
+            game.width - 100 * game.scaleValue,
+            game.height - 100 * game.scaleValue,
+            'menu'
+        );
         menu.inputEnabled = true;
         menu.anchor.setTo(0.5, 0.5);
+        menu.scale.setTo(game.scaleValue);
 
-        game.add.image(20, 20, 'tut-1');
-        game.add.image(game.world.centerX + 20, 20, 'tut-2');
-        game.add.image(20, 220, 'tut-3');
-        game.add.image(game.world.centerX + 20, 220, 'tut-4');
-        game.add.image(200, 420, 'tut-5');
+        let tut1 = game.add.image(
+            20 * game.scaleValue,
+            20 * game.scaleValue,
+            'tut-1'
+        );
+        tut1.scale.setTo(game.scaleValue);
+        let tut2 = game.add.image(
+            game.world.centerX + 20 * game.scaleValue,
+            20 * game.scaleValue,
+            'tut-2'
+        );
+        tut2.scale.setTo(game.scaleValue);
+        let tut3 = game.add.image(
+            20 * game.scaleValue,
+            220 * game.scaleValue,
+            'tut-3'
+        );
+        tut3.scale.setTo(game.scaleValue);
+        let tut4 = game.add.image(
+            game.world.centerX + 20 * game.scaleValue,
+            220 * game.scaleValue,
+            'tut-4'
+        );
+        tut4.scale.setTo(game.scaleValue);
+        let tut5 = game.add.image(
+            200 * game.scaleValue,
+            420 * game.scaleValue,
+            'tut-5'
+        );
+        tut5.scale.setTo(game.scaleValue);
 
         sfx.events.onInputOver.add(this.hover, this);
         sfx.events.onInputDown.add(function () {
@@ -58,10 +94,10 @@ Tutorials.prototype = {
         };
     },
 
-    hover: function (item, pointer) {
-        item.scale.setTo(1.1);
+    hover: function (item) {
+        item.scale.setTo(1.1 * game.scaleValue);
         item.events.onInputOut.add((item) => {
-            item.scale.setTo(1);
+            item.scale.setTo(1 * game.scaleValue);
         }, this)
     },
 };
