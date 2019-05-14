@@ -46,8 +46,8 @@ Game.prototype = {
         bgScore.scale.setTo(game.scaleValue);
 
         let time = game.add.image(
-            610* game.scaleValue,
-            250* game.scaleValue,
+            610 * game.scaleValue,
+            250 * game.scaleValue,
             'time'
         );
         time.scale.setTo(game.scaleValue);
@@ -93,13 +93,10 @@ Game.prototype = {
             'gem10', 'gem11', 'gem12'
         ];
 
-        game.score = 0;
-        this.createScoreAndTimer();
-
         game.activeTile1 = null;
         game.activeTile2 = null;
-        game.horizontalMatch = false;
-        game.verticalMatch = false;
+        // game.horizontalMatch = false;
+        // game.verticalMatch = false;
 
         game.canMove = false;
 
@@ -126,6 +123,9 @@ Game.prototype = {
         game.dropAudio = game.sound.add('drop-audio');
         game.killAudio = game.sound.add('kill-audio');
 
+        game.score = 0;
+        this.createScoreAndTimer();
+
         this.initTiles();
     },
 
@@ -151,7 +151,7 @@ Game.prototype = {
 
                     this.swapTiles();
 
-                    game.time.events.add(600, function () {
+                    game.time.events.add(500, function () {
                         this.checkMatch();
                     }, this);
                 }
@@ -190,9 +190,10 @@ Game.prototype = {
 
         let tile = game.tiles.create((x * game.tileWidth) + (game.dx + game.tileWidth / 2), 0, tileToAdd);
         tile.scale.setTo(game.scaleValue);
-        
+
         if (key) {
-            game.tileGrid[x][y] = tile
+            game.tileGrid[x][y] = tile;
+            this.activateBonusTile(tile, key)
         };
 
         game.add.tween(tile).to({
@@ -210,7 +211,7 @@ Game.prototype = {
         return tile;
     },
 
-    tileDown: function (tile, pointer) {
+    tileDown: function (tile) {
         if (game.canMove) {
             game.activeTile1 = tile;
             game.activeTile1.scale.setTo(1.05 * game.scaleValue);
@@ -261,7 +262,9 @@ Game.prototype = {
 
             this.resetTile();
 
-            this.fillTile();
+            game.time.events.add(200, function () {
+                this.fillTile();
+            }, this);
 
             game.time.events.add(400, function () {
                 this.tileUp();
@@ -386,15 +389,13 @@ Game.prototype = {
                 }
             };
 
-            let pos = this.getMatchesLineCenter(positions);
 
             if (tempArr.length > 3) {
+                let pos = this.getMatchesLineCenter(positions);
                 let bonusTileKeyNum = Math.floor(Math.random() * (game.bonusTileTypes.length - 0.1));
                 let bonusTileType = game.bonusTileTypes[bonusTileKeyNum];
 
-                this.addTile(pos.x, pos.y, bonusTileType);
-
-                this.activateBonusTile(pos, bonusTileType)
+                this.addTile(pos.x, pos.y, bonusTileType)
             };
 
         };
@@ -435,10 +436,10 @@ Game.prototype = {
         return res;
     },
 
-    activateBonusTile: function (pos, bonusTileType) {
-        let bonusTile = game.tileGrid[pos.x][pos.y];
+    activateBonusTile: function (tile, bonusTileType) {
+        let bonusTile = tile;
 
-        if (bonusTileType != 'gem07'){
+        if (bonusTileType != 'gem07') {
             game.time.events.add(300, function () {
                 bonusTile.scale.setTo(1.1 * game.scaleValue);
                 game.time.events.add(400, function () {
@@ -450,17 +451,17 @@ Game.prototype = {
                             game.time.events.add(400, function () {
                                 bonusTile.scale.setTo(1.1 * game.scaleValue);
                                 game.time.events.add(400, function () {
-                                    this.doBonuses(pos, bonusTileType)
+                                    this.doBonuses(tile, bonusTileType)
                                 }, this)
                             }, this)
                         }, this)
                     }, this)
                 }, this)
             }, this);
-        }else {
+        } else {
             game.time.events.add(300, function () {
                 bonusTile.scale.setTo(1.1 * game.scaleValue);
-                this.doBonuses(pos, bonusTileType)
+                this.doBonuses(tile, bonusTileType)
                 game.time.events.add(400, function () {
                     bonusTile.scale.setTo(1 * game.scaleValue);
                     game.time.events.add(400, function () {
@@ -477,7 +478,7 @@ Game.prototype = {
         }
     },
 
-    doBonuses: function (pos, bonusTileType) {
+    doBonuses: function (tile, bonusTileType) {
         let horizontal,
             vertical;
         switch (bonusTileType) {
@@ -486,31 +487,31 @@ Game.prototype = {
 
                 horizontal = false;
                 vertical = false;
-                game.time.events.add(2100, function() {
-                    this.removeLines(pos, horizontal, vertical);
-                },this);
+                game.time.events.add(2100, function () {
+                    this.removeLines(tile, horizontal, vertical);
+                }, this);
                 break;
             case 'gem08':
                 horizontal = true;
                 vertical = true
-                this.removeLines(pos, horizontal, vertical);
+                this.removeLines(tile, horizontal, vertical);
                 break;
             case 'gem09':
                 horizontal = false;
                 vertical = true;
-                this.removeLines(pos, horizontal, vertical);
+                this.removeLines(tile, horizontal, vertical);
                 break;
             case 'gem10':
                 horizontal = true;
                 vertical = false;
-                this.removeLines(pos, horizontal, vertical);
+                this.removeLines(tile, horizontal, vertical);
                 break;
             case 'gem11':
                 game.timer += 5;
 
                 horizontal = false;
                 vertical = false;
-                this.removeLines(pos, horizontal, vertical);
+                this.removeLines(tile, horizontal, vertical);
                 break;
             case 'gem12':
                 game.score *= 2;
@@ -518,7 +519,7 @@ Game.prototype = {
 
                 horizontal = false;
                 vertical = false;
-                this.removeLines(pos, horizontal, vertical);
+                this.removeLines(tile, horizontal, vertical);
                 break;
             default:
                 console.log('No such bonus donut!');
@@ -526,58 +527,60 @@ Game.prototype = {
         }
     },
 
-    removeLines: function (pos, horizontal, vertical) {
-        let removeGroup = [];
-        for (let i = 0; i < game.tileGrid.length; i++) {
-            if (vertical) {
-                removeGroup.push(game.tileGrid[pos.x][i]);
-                game.tileGrid[pos.x][i] = null;
+    removeLines: function (tile, horizontal, vertical) {
+        if (tile) {
+            let removeGroup = [];
+            let pos = this.getTilePos(game.tileGrid, tile);
 
-                let tilePos = {
-                    x: pos.x,
-                    y: i
+            for (let i = 0; i < game.tileGrid.length; i++) {
+                if (vertical && game.tileGrid[pos.x][i]) {
+                    removeGroup.push(game.tileGrid[pos.x][i]);
+                    game.tileGrid[pos.x][i] = null;
+
+                    let tilePos = {
+                        x: pos.x,
+                        y: i
+                    };
+                    this.addEmitter(tilePos)
                 };
-                this.addEmitter(tilePos)
+                if (horizontal && game.tileGrid[i][pos.y]) {
+                    removeGroup.push(game.tileGrid[i][pos.y]);
+                    game.tileGrid[i][pos.y] = null;
+
+                    let tilePos = {
+                        x: i,
+                        y: pos.y
+                    };
+                    this.addEmitter(tilePos)
+                }
             };
-            if (horizontal) {
-                removeGroup.push(game.tileGrid[i][pos.y]);
-                game.tileGrid[i][pos.y] = null;
 
-                let tilePos = {
-                    x: i,
-                    y: pos.y
-                };
-                this.addEmitter(tilePos)
+            if (!horizontal && !vertical) {
+                removeGroup[0] = tile;
+                game.tileGrid[pos.x][pos.y] = null;
+
+                this.addEmitter(pos)
+            };
+
+            for (let i = 0; i < removeGroup.length; i++) {
+                game.tiles.remove(removeGroup[i]);
+
+                this.incrementScore();
+            };
+
+            this.resetTile();
+
+            game.time.events.add(200, function () {
+                this.fillTile();
+            }, this);
+
+            game.time.events.add(600, function () {
+                this.checkMatch();
+            }, this);
+
+            if (game.soundOn) {
+                game.killAudio.play()
             }
-        };
-
-        if (!horizontal && !vertical) {
-            removeGroup[0] = game.tileGrid[pos.x][pos.y];
-            game.tileGrid[pos.x][pos.y] = null;
-
-            let tilePos = {
-                x: pos.x,
-                y: pos.y
-            };
-            this.addEmitter(tilePos)
-        };
-
-        for (let i = 0; i < removeGroup.length; i++) {
-            game.tiles.remove(removeGroup[i]);
-
-            this.incrementScore();
-        };
-
-        this.resetTile();
-
-        this.fillTile();
-
-        game.time.events.add(600, function () {
-            this.checkMatch();
-        }, this);
-
-        if (game.soundOn) {
-            game.killAudio.play()
         }
     },
 
@@ -588,21 +591,22 @@ Game.prototype = {
             for (let j = 0; j < game.tileGrid.length; j++) {
                 if (game.tileGrid[i][j].key == removeType) {
                     removeGroup.push(game.tileGrid[i][j]);
-                    game.time.events.add(2100, function() {
-                        game.tileGrid[i][j] = null;
-                    },this);
 
                     let tilePos = {
                         x: i,
                         y: j
                     };
-                    this.addEmitter(tilePos)
+
+                    game.time.events.add(2100, function () {
+                        game.tileGrid[i][j] = null;
+                        this.addEmitter(tilePos)
+                    }, this)
                 }
             }
         };
 
         for (let i = 0; i < removeGroup.length; i++) {
-            
+
             game.time.events.add(300, function () {
                 removeGroup[i].scale.setTo(1.1 * game.scaleValue);
                 game.time.events.add(400, function () {
@@ -613,9 +617,9 @@ Game.prototype = {
                             removeGroup[i].scale.setTo(1 * game.scaleValue);
                             game.time.events.add(400, function () {
                                 removeGroup[i].scale.setTo(1.1 * game.scaleValue);
-                                game.time.events.add(200, function() {
+                                game.time.events.add(200, function () {
                                     game.tiles.remove(removeGroup[i])
-                                },this);
+                                }, this);
                             }, this)
                         }, this)
                     }, this)
@@ -624,19 +628,21 @@ Game.prototype = {
 
             this.incrementScore();
         };
-        game.time.events.add(2100, function() {
+        game.time.events.add(2100, function () {
             this.resetTile();
-    
-            this.fillTile();
-    
+
+            game.time.events.add(200, function () {
+                this.fillTile();
+            }, this);
+
             game.time.events.add(600, function () {
                 this.checkMatch();
             }, this);
-    
+
             if (game.soundOn) {
                 game.killAudio.play()
             }
-        },this);
+        }, this);
     },
 
     addEmitter: function (tilePos) {
@@ -675,6 +681,14 @@ Game.prototype = {
     },
 
     resetTile: function () {
+        game.canFill = false;
+
+        if (!game.canReset) {
+            game.time.events.add(100, function () {
+                this.resetTile()
+            }, this)
+        };
+
         for (let i = 0; i < game.tileGrid.length; i++) {
             for (let j = game.tileGrid[i].length - 1; j > 0; j--) {
                 if (game.tileGrid[i][j] == null && game.tileGrid[i][j - 1] != null) {
@@ -690,10 +704,20 @@ Game.prototype = {
                     j = game.tileGrid[i].length;
                 }
             }
-        }
+        };
+
+        game.canFill = true
     },
 
     fillTile: function () {
+        game.canReset = false;
+
+        if (!game.canFill) {
+            game.time.events.add(100, function () {
+                this.fillTile()
+            }, this)
+        };
+
         for (let i = 0; i < game.tileGrid.length; i++) {
             for (let j = 0; j < game.tileGrid.length; j++) {
                 if (game.tileGrid[i][j] == null) {
@@ -708,7 +732,9 @@ Game.prototype = {
             game.time.events.add(500, function () {
                 game.dropAudio.play()
             }, this);
-        }
+        };
+
+        game.canReset = true
     },
 
     createScoreAndTimer: function () {
@@ -717,8 +743,7 @@ Game.prototype = {
         game.scoreLabel = game.add.text(
             800 * game.scaleValue,
             110 * game.scaleValue,
-            game.score,
-            {
+            game.score, {
                 font: font,
                 fill: "#fff"
             }
@@ -732,8 +757,7 @@ Game.prototype = {
         game.timerLabel = game.add.text(
             800 * game.scaleValue,
             300 * game.scaleValue,
-            '0:' + game.timer,
-            {
+            '0:' + game.timer, {
                 font: font,
                 fill: "#fff"
             }
@@ -764,9 +788,10 @@ Game.prototype = {
     },
 
     hover: function (item) {
-        item.scale.setTo(1.1 * game.scaleValuev);
+
+        item.scale.setTo(1.1 * game.scaleValue);
         item.events.onInputOut.add((item) => {
-            item.scale.setTo(1 * game.scaleValue)
+            item.scale.setTo(1 * game.scaleValue);
         }, this)
     },
 };
